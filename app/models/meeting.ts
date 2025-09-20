@@ -1,20 +1,12 @@
 import { DateTime } from 'luxon'
-import hash from '@adonisjs/core/services/hash'
-import { compose } from '@adonisjs/core/helpers'
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
-import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import Organization from './organization.js'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
-const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
-  uids: ['email'],
-  passwordColumnName: 'password',
-})
-
-export default class User extends compose(BaseModel, AuthFinder) {
+export default class Meeting extends BaseModel {
+  public static table='meetings'
   @column({ isPrimary: true })
   declare id: number
-
   @column()
   declare organization_id: number
   @belongsTo(() => Organization, {
@@ -22,19 +14,19 @@ export default class User extends compose(BaseModel, AuthFinder) {
     localKey: 'id',
   })
   declare Organization: BelongsTo<typeof Organization>
-
   @column()
-  declare username: string | null
-
+  declare title: string
+  @column.date()
+  declare date: DateTime
   @column()
-  declare email: string
-
-  @column({ serializeAs: null })
-  declare password: string
-
+  declare time: string
+  @column()
+  declare participants: string
+  @column()
+  declare summary: string
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
+  declare updatedAt: DateTime
 }
