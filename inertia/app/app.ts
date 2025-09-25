@@ -22,9 +22,9 @@ createInertiaApp({
   },
 
   setup({ el, App, props, plugin }) {
-    
+
     createSSRApp({ render: () => h(App, props) })
-    
+
       .use(plugin)
       .mount(el)
   },

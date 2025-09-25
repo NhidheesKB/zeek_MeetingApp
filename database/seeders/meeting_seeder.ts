@@ -6,9 +6,9 @@ export default class extends BaseSeeder {
   async run() {
     await Meeting.create({
       organization_id:1,
-      title:'Zeekers Meeting Test',
+      title:'Zeekers Test Meeting',
       date:DateTime.local().startOf('day'),
-      time:"3:00 PM",
+      time:"12:00 PM",
       participants:"Name1,Name2,Name3"
     })
   }

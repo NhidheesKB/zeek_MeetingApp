@@ -1,0 +1,17 @@
+import drive from '@adonisjs/drive/services/main'
+
+export class DiskService {
+  private disk
+  constructor() {
+    this.disk = drive.use('s3')
+  }
+  async getUrl(wavBuffer: Buffer) {
+    const filePath = `service-notes/record-${Date.now()}.wav`
+    await this.disk.put(filePath, wavBuffer)
+    const url = await this.disk.getUrl(filePath)
+    return { url, filePath }
+  }
+  async delete(filePath: string) {
+    await this.disk.delete(filePath)
+  }
+}
