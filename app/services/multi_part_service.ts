@@ -15,6 +15,7 @@ export class MultiPartService {
       const extension = extensions[contentType]
       const filePath = app.makePath(`storage/tmp/${cuid()}.${extension}`)
       await pipeline(part, createWriteStream(filePath))
+      console.log("Tmppath",filePath)
       return { tmpPath: filePath }
     })
     await request?.multipart?.process()

@@ -19,6 +19,7 @@ export default class AudioController {
   ) {}
   public async translateAudio({ request, response, view, auth }: HttpContext) {
     const { recorder, meetingid } = await request.validateUsing(audio_validator)
+    console.log("rec",recorder)
     if (!recorder || !recorder.tmpPath) {
       return response.badRequest({ message: 'Invalid audio or missing file' })
     }
