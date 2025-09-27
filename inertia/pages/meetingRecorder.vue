@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-100 flex flex-col">
     <Navbar link="/available-meetings" message="Available Meeting" />
-    <div class="flex-1 flex items-center justify-center">
+    <div class="flex-1 flex flex-col items-center justify-center space-y-8">
       <div class="flex flex-col items-center">
         <div class="relative flex items-center justify-center" @click="toggleMic">
           <div
@@ -23,6 +23,24 @@
           {{ micOn ? 'Recording...' : 'Tap mic to start' }}
         </p>
       </div>
+
+      <div class="flex flex-col items-center space-y-4">
+        <a
+          v-if="showGenerateButton"
+          class="px-6 py-3 cursor-default bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
+          :href="pdfLink"
+          download="meeting-report.pdf"
+        >
+          Download Meeting Report
+        </a>
+        <p
+          v-if="reportMessage"
+          :class="reportError ? 'text-red-600' : 'text-green-600'"
+          class="text-lg"
+        >
+          {{ reportMessage }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -31,25 +49,27 @@
 import { ref, watch } from 'vue'
 import type { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/vue3'
-import Navbar from '../component/navbar.vue'
-
-const { meetingid } = defineProps<{
-  meetingid: string
-}>()
-
-const page = usePage<SharedProps>()
-const csrfToken = ref(page.props.csrfToken)
-
-const micOn = ref(false)
-
+import Navbar from '../component/Navbar.vue'
 let chunks: Blob[] = []
 let stream: MediaStream | null = null
 let mediarecorder: MediaRecorder | null = null
-
+const { meetingid } = defineProps<{
+  meetingid: string
+}>()
+const page = usePage<SharedProps>()
+const csrfToken = ref(page.props.csrfToken)
+const micOn = ref(false)
+const showGenerateButton = ref(false)
+const reportMessage = ref('')
+const pdfLink = ref('')
+const reportError = ref(false)
 function toggleMic() {
   micOn.value = !micOn.value
 }
-
+function generateReport(pdfblob: Blob) {
+  const url = URL.createObjectURL(pdfblob)
+  pdfLink.value = url
+}
 async function recorder() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -61,31 +81,55 @@ async function recorder() {
     }
     mediarecorder.onstop = () => {
       const audioblob = new Blob(chunks, { type: 'audio/webm' })
-      console.log('audioblob', audioblob)
       sendaudio(audioblob)
     }
   } catch (error) {
     window.alert(`Microphone error: ${error.message}`)
+    toggleMic()
   }
 }
-async function sendaudio(audioblob:Blob) {
-  const formData=new FormData()
-  formData.append('recorder',audioblob)
-  const response=await fetch('/audio',{
-    method:'POST',
-    body:formData,
-    headers:{
-      'X-CSRF-Token': csrfToken.value,
+
+async function sendaudio(audioblob: Blob) {
+  try {
+    const formData = new FormData()
+    formData.append('recorder', audioblob)
+    formData.append('meetingid', meetingid)
+    const response = await fetch('/upload', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRF-Token': csrfToken.value,
+      },
+    })
+    const contentType = response.headers.get('Content-Type')
+    if (!response.ok) {
+      const error: any = await response.json()
+      reportError.value = !reportError.value
+      reportMessage.value = error.message
+      return
+    } else if (contentType && contentType.includes('application/pdf')) {
+      const pdfblob = await response.blob()
+      console.log('pdfblob', pdfblob)
+      showGenerateButton.value = true
+      generateReport(pdfblob)
+      return
     }
-  })
-  console.log("res",response)
+    const res: any = await response.json()
+    reportError.value = !reportError.value
+    reportMessage.value = res.message
+  } catch (error) {
+    reportError.value = false
+    console.log('clienterror', error)
+  }
 }
+
 watch(micOn, async (ismicon) => {
   if (ismicon) {
-    console.log('Mic ON')
+    reportError.value = false
+    showGenerateButton.value = false
+    reportMessage.value = ''
     await recorder()
   } else if (mediarecorder && mediarecorder.state !== 'inactive') {
-    console.log('Mic OFF')
     mediarecorder.stop()
     stream?.getTracks().forEach((track) => track.stop())
   }

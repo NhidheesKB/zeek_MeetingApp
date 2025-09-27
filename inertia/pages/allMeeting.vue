@@ -10,7 +10,7 @@
           v-for="(meeting, index) in props.meetings"
           :key="index"
           @click="$inertia.get(`/?meetingid=${meeting.id}`)"
-          class="bg-white hover:shadow-amber-700 rounded-xl shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition"
+          class="bg-white hover:cursor-pointer hover:shadow-amber-700 rounded-xl shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition"
         >
           <h3 class="text-lg font-semibold text-blue-600 mb-2">
             {{ meeting.title }}
@@ -47,7 +47,7 @@ import { ref } from 'vue'
 import type { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/vue3'
 import { InferPageProps } from '@adonisjs/inertia/types'
-import Navbar from '../component/navbar.vue'
+import Navbar from '../component/Navbar.vue'
 import DashboardController from '#controllers/dashboard_controller'
 const page = usePage<SharedProps>()
 const csrfToken = ref(page.props.csrfToken)

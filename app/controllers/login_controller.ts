@@ -16,6 +16,7 @@ export default class LoginController {
       }
     } catch (error) {
       console.error("LoginConError",error)
+      return response.redirect().toRoute('login')
     }
   }
 }

@@ -6,7 +6,7 @@ export class DiskService {
     this.disk = drive.use('s3')
   }
   async getUrl(wavBuffer: Buffer) {
-    const filePath = `service-notes/record-${Date.now()}.wav`
+    const filePath = `service-notes/meetingRecordAt-${Date.now()}.wav`
     await this.disk.put(filePath, wavBuffer)
     const url = await this.disk.getUrl(filePath)
     return { url, filePath }

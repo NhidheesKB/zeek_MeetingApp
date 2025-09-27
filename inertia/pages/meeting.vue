@@ -63,7 +63,7 @@ import 'flatpickr/dist/themes/material_blue.css'
 import type { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/vue3'
 import { onMounted, ref } from 'vue'
-import Navbar from '../component/navbar.vue'
+import Navbar from '../component/Navbar.vue'
 
 const page = usePage<SharedProps>()
 const csrfToken = ref(page.props.csrfToken)

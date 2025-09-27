@@ -12,7 +12,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'AdonisJS'
 createInertiaApp({
   progress: { color: '#5468FF' },
 
-  title: (title) => `${title} - ${appName}`,
+  title: (title) => "Zeekers Meet",
 
   resolve: (name) => {
     return resolvePageComponent(
