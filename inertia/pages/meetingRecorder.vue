@@ -98,6 +98,9 @@ async function sendaudio(audioblob: Blob) {
     const response = await fetch('/upload', {
       method: 'POST',
       body: formData,
+      headers: {
+        'X-CSRF-Token': csrfToken.value,
+      },
       credentials:'include'
     })
     console.log("res",response)
