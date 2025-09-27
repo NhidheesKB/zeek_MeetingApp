@@ -14,7 +14,7 @@ RUN npm install
 COPY --from=build /build/build /www/build
 COPY --from=build /build/build/public /www/public
 COPY cred /www/cred
-RUN mkdir /www/build/storage
+RUN mkdir /www/build/storage/tmp
 RUN chmod -R 777 /www/cred && chmod -R 777 /www/build/storage
 
 EXPOSE 3333
