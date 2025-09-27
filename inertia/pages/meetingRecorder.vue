@@ -103,41 +103,24 @@ async function sendaudio(audioblob: Blob) {
       },
       credentials:'include'
     })
-    console.log("res",response)
-    const contentType = response.headers.get('Content-Type') || ''
-
+      const contentType = response.headers.get('Content-Type')
     if (!response.ok) {
-      if (contentType.includes('application/json')) {
-        const error = await response.json()
-        reportError.value = true
-        reportMessage.value = error.message
-      } else {
-        reportError.value = true
-        reportMessage.value = `Unexpected error: ${await response.text()}`
-      }
+      const error: any = await response.json()
+      reportError.value = !reportError.value
+      reportMessage.value = error.message
       return
-    }
-
-    if (contentType.includes('application/pdf')) {
+    } else if (contentType && contentType.includes('application/pdf')) {
       const pdfblob = await response.blob()
       showGenerateButton.value = true
       generateReport(pdfblob)
       return
     }
-
-    if (contentType.includes('application/json')) {
-      const res = await response.json()
-      reportError.value = false
-      reportMessage.value = res.message
-      return
-    }
-
-    reportError.value = true
-    reportMessage.value = 'Unexpected response from server.'
+    const res: any = await response.json()
+    reportError.value = !reportError.value
+    reportMessage.value = res.message
   } catch (error) {
-    reportError.value = true
-    reportMessage.value = error.message
-    console.error('Client error:', error)
+    reportError.value = false
+    console.log('clienterror', error)
   }
 }
 

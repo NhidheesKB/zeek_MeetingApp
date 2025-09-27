@@ -19,7 +19,6 @@ export default class AudioController {
   ) {}
   public async translateAudio({ request, response, view, auth }: HttpContext) {
     const { recorder, meetingid } = await request.validateUsing(audio_validator)
-    console.log("rec",recorder)
     if (!recorder || !recorder.tmpPath) {
       return response.badRequest({ message: 'Invalid audio or missing file' })
     }
@@ -46,7 +45,6 @@ export default class AudioController {
         })
       console.log('result', result)
       const summary = await this.gemini.getSummary(result)
-      console.log("sum",summary)
       if (summary == 'Cannot generate a report: the content is too short.')
         return response.json({ sucess: true, message: summary })
       console.log("summary",summary)
