@@ -103,7 +103,7 @@ async function sendaudio(audioblob: Blob) {
       },
       credentials:'include'
     })
-
+    console.log("res",response)
     const contentType = response.headers.get('Content-Type') || ''
 
     if (!response.ok) {
