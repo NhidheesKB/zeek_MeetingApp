@@ -14,5 +14,5 @@ RUN chmod -R 777 /www/cred && chmod -R 777 ./storage
 RUN npm ci --omit="dev"
 
 EXPOSE 3333
-CMD ["node", "./build/bin/server.js"]
+CMD ["node", "./bin/server.js"]
 
