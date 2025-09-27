@@ -12,6 +12,7 @@ WORKDIR /www
 COPY package*.json ./
 RUN npm install
 COPY --from=build /build/build /www/build
+COPY --from=build /build/public /www/public
 COPY cred /www/cred
 RUN chmod -R 777 /www/cred
 
