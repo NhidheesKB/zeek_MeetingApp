@@ -94,6 +94,7 @@ async function sendaudio(audioblob: Blob) {
     const formData = new FormData()
     formData.append('recorder', audioblob)
     formData.append('meetingid', meetingid)
+
     const response = await fetch('/upload', {
       method: 'POST',
       body: formData,
@@ -101,27 +102,44 @@ async function sendaudio(audioblob: Blob) {
         'X-CSRF-Token': csrfToken.value,
       },
     })
-    const contentType = response.headers.get('Content-Type')
+
+    const contentType = response.headers.get('Content-Type') || ''
+
     if (!response.ok) {
-      const error: any = await response.json()
-      reportError.value = !reportError.value
-      reportMessage.value = error.message
+      if (contentType.includes('application/json')) {
+        const error = await response.json()
+        reportError.value = true
+        reportMessage.value = error.message
+      } else {
+        reportError.value = true
+        reportMessage.value = `Unexpected error: ${await response.text()}`
+      }
       return
-    } else if (contentType && contentType.includes('application/pdf')) {
+    }
+
+    if (contentType.includes('application/pdf')) {
       const pdfblob = await response.blob()
-      console.log('pdfblob', pdfblob)
       showGenerateButton.value = true
       generateReport(pdfblob)
       return
     }
-    const res: any = await response.json()
-    reportError.value = !reportError.value
-    reportMessage.value = res.message
+
+    if (contentType.includes('application/json')) {
+      const res = await response.json()
+      reportError.value = false
+      reportMessage.value = res.message
+      return
+    }
+
+    reportError.value = true
+    reportMessage.value = 'Unexpected response from server.'
   } catch (error) {
-    reportError.value = false
-    console.log('clienterror', error)
+    reportError.value = true
+    reportMessage.value = error.message
+    console.error('Client error:', error)
   }
 }
+
 
 watch(micOn, async (ismicon) => {
   if (ismicon) {
