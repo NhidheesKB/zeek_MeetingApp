@@ -101,6 +101,7 @@ async function sendaudio(audioblob: Blob) {
       headers: {
         'X-CSRF-Token': csrfToken.value,
       },
+      credentials:'include'
     })
 
     const contentType = response.headers.get('Content-Type') || ''
