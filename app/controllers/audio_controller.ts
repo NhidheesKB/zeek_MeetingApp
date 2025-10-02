@@ -32,46 +32,31 @@ export default class AudioController {
         'The provided audio is too noisy or short. Please provide a clear or longer audio'
       if (langCode === errorMsg) {
         await this.disk.delete(filePath)
-        return response.badRequest({
-          sucess: false,
-          message: errorMsg,
-        })
+        throw new Error(errorMsg)
       }
       const result = await this.audio.toTranslatedText(url, langCode)
-      if (typeof result == 'undefined')
-        return response.json({
-          sucess: true,
-          message: (await this.disk.delete(filePath), errorMsg),
-        })
       console.log('result', result)
       const summary = await this.gemini.getSummary(result)
-      if (summary == 'Cannot generate a report: the content is too short.')
-        return response.json({ sucess: true, message: summary })
-      console.log("summary",summary)
+      if (summary == 'Cannot generate a report: the content is too short.') {
+        await this.disk.delete(filePath)
+        throw new Error(summary)
+      }
+      console.log('summary', summary)
       const organization_id = auth.user?.organization_id as number
       const organization = await Organization.query().where('id', organization_id)
       const meetingDetails = await this.meeting.checkMeeting(meetingid, organization_id)
-      const pageContent = await view.render('report', {
-        organizationName: organization[0].name,
-        meetingTitle: meetingDetails[0].title,
-        meetingDate: meetingDetails[0].date.toISODate(),
-        meetingTime: meetingDetails[0].time,
-        participants: meetingDetails[0].participants.split(','),
-        summary: summary,
-      })
-      const pdfBuffer = await this.puppeteer.generateReport(pageContent)
-      const pdfName=meetingDetails[0].title
+      const pdfBuffer = await this.puppeteer.generateReport(meetingDetails,organization,summary)
+      const pdfName = meetingDetails[0].title
       response.header('Content-Type', 'application/pdf')
-      response.header(
-        'Content-Disposition',
-        `attachment; filename=${pdfName}-report.pdf`
-      )
+      response.header('Content-Disposition', `attachment; filename=${pdfName}-report.pdf`)
       return response.send(pdfBuffer)
     } catch (error) {
-      console.error('Bhashinis Error', error.message)
+      // console.error('Bhashinis Error', error.message)
       return response.status(500).json({
         sucess: false,
-        message: 'The provided audio is too noisy or short. Please provide a clear or longer audio',
+        message:
+          error.message ||
+          'The provided audio is too noisy or short. Please provide a clear or longer audio',
       })
     }
   }
