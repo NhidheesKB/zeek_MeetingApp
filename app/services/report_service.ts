@@ -1,4 +1,3 @@
-import env from '#start/env'
 import puppeteer from 'puppeteer'
 import view from 'edge.js'
 import Meeting from '#models/meeting'
@@ -16,10 +15,7 @@ export class PuppeteerService {
     return pageContent
   }
   async generateReport(meetingDetails: Meeting[], organization: Organization[], summary: string|undefined) {
-    const browser = await puppeteer.launch({
-      executablePath: env.get(' PUPPETEER_EXECUTABLE_PATH'),
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    })
+    const browser = await puppeteer.launch()
     const page = await browser.newPage()
     const pageContent = await this.pageContent(meetingDetails, organization, summary)
     await page.setContent(pageContent, { waitUntil: 'networkidle0' })

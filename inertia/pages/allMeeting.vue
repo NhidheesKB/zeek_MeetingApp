@@ -43,14 +43,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { SharedProps } from '@adonisjs/inertia/types'
-import { usePage } from '@inertiajs/vue3'
 import { InferPageProps } from '@adonisjs/inertia/types'
 import Navbar from '../component/Navbar.vue'
 import DashboardController from '#controllers/dashboard_controller'
-const page = usePage<SharedProps>()
-const csrfToken = ref(page.props.csrfToken)
 const props = defineProps<{
   meetings: InferPageProps<DashboardController, 'dashboard'>['meetings']
 }>()

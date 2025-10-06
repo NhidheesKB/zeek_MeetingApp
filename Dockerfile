@@ -6,22 +6,15 @@ RUN npm install && npm run build
 
 FROM node:22-alpine AS production
 WORKDIR /www/build
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-ENV PUPPETEER_SKIP_DOWNLOAD=true
 COPY --from=build /build/build ./
 COPY --from=build /build/build/public /www/public
 COPY cred ./cred
+COPY .puppeteerrc.cjs ./
 RUN mkdir -p ./storage/tmp
-RUN chmod -R 777 ./cred && chmod -R 777 ./storage
+RUN mkdir -p ./.cache/puppeteer
+RUN chmod -R 777 ./cred && chmod -R 777 ./storage && chmod -R 777 ./.cache
 COPY package*.json ./
-RUN npm ci --omit="dev"
+RUN npx puppeteer browsers install && npm ci --omit="dev"  
 
 EXPOSE 3333
 CMD ["node", "./bin/server.js"]

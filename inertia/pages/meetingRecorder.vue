@@ -29,7 +29,7 @@
           v-if="showGenerateButton"
           class="px-6 py-3 cursor-default bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300"
           :href="pdfLink"
-          download="meeting-report.pdf"
+          :download="fileName"
         >
           Download Meeting Report
         </a>
@@ -62,6 +62,7 @@ const micOn = ref(false)
 const showGenerateButton = ref(false)
 const reportMessage = ref('')
 const pdfLink = ref('')
+const fileName=ref('')
 const reportError = ref(false)
 function toggleMic() {
   micOn.value = !micOn.value
@@ -105,11 +106,13 @@ async function sendaudio(audioblob: Blob) {
     })
       const contentType = response.headers.get('Content-Type')
     if (!response.ok) {
-      const error: any = await response.json()
+      const error: Error = await response.json()
       reportError.value = !reportError.value
       reportMessage.value = error.message
       return
     } else if (contentType && contentType.includes('application/pdf')) {
+      const name=response.headers.get('Content-Disposition')?.split('=')[1]
+      fileName.value=name as string
       const pdfblob = await response.blob()
       showGenerateButton.value = true
       generateReport(pdfblob)
