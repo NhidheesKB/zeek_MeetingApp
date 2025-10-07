@@ -6,7 +6,7 @@
         <h2 class="text-2xl md:text-3xl font-bold text-blue-600 mb-6 text-center">
           Add Meeting Details
         </h2>
-        <form class="space-y-6" action="/" method="POST">
+        <form class="space-y-6" action="/meeting" method="POST">
           <input type="hidden" name="_csrf" :value="csrfToken" />
           <div v-for="(field, index) in formFields" :key="index" class="relative">
             <label :for="field.toLowerCase()" class="block text-gray-700 font-medium mb-2">

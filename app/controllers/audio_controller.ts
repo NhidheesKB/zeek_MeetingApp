@@ -10,17 +10,23 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { unlink } from 'fs/promises'
 @inject()
 export default class AudioController {
+  private errormsg
   constructor(
     private audio: AudioService,
     private disk: DiskService,
     private gemini: GeminiService,
     private meeting: MeetingService,
-    private puppeteer: PuppeteerService
-  ) { }
+    private puppeteer: PuppeteerService,
+  ) { this.errormsg = ['The provided audio is too noisy or short. Please provide a clear or longer audio', 'Cannot generate a report: the content is too short.'] }
   public async translateAudio({ request, response, auth }: HttpContext) {
     const { recorder, meetingid } = await request.validateUsing(audio_validator)
     if (!recorder || !recorder.tmpPath) {
       return response.badRequest({ message: 'Invalid audio or missing file' })
+    }
+    const checkError = async (filePath: string, message: string | undefined) => {
+      this.errormsg.includes(message as string)
+        ? (await this.disk.delete(filePath), (() => { throw new Error(message) })())
+        : true;
     }
     try {
       const path = recorder.tmpPath
@@ -28,18 +34,10 @@ export default class AudioController {
       const { url, filePath } = await this.disk.getUrl(wavBuffer)
       await unlink(path)
       const langCode = await this.audio.detectLanguage(url)
-      const errorMsg =
-        'The provided audio is too noisy or short. Please provide a clear or longer audio'
-      if (langCode === errorMsg) {
-        await this.disk.delete(filePath)
-        throw new Error(errorMsg)
-      }
+      await checkError(filePath, langCode)
       const result = await this.audio.toTranslatedText(url, langCode)
       const summary = await this.gemini.getSummary(result)
-      if (summary == 'Cannot generate a report: the content is too short.') {
-        await this.disk.delete(filePath)
-        throw new Error(summary)
-      }
+      await checkError(filePath, summary)
       console.log('summary', summary)
       const organization_id = auth.user?.organization_id as number
       const organization = await Organization.query().where('id', organization_id)
@@ -53,7 +51,7 @@ export default class AudioController {
       console.error('Bhashinis Error', error.message)
       return response.status(500).json({
         sucess: false,
-        message: error.message.includes(500) ? 'The provided audio is too noisy or short. Please provide a clear or longer audio' : error.message
+        message: error.message.includes(500) ? this.errormsg[0] : error.message
       })
     }
   }
