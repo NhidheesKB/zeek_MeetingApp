@@ -48,19 +48,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { SharedProps } from '@adonisjs/inertia/types'
-import { usePage } from '@inertiajs/vue3'
 import Navbar from '../component/Navbar.vue'
-
-let chunks: Blob[] = []
 let stream: MediaStream | null = null
 let mediarecorder: MediaRecorder | null = null
-
 const { meetingid } = defineProps<{ meetingid: string }>()
-
-const page = usePage<SharedProps>()
-const csrfToken = ref(page.props.csrfToken)
-
 const micOn = ref(false)
 const isProcessing = ref(false)
 const showGenerateButton = ref(false)
@@ -82,68 +73,50 @@ function generateReport(pdfblob: Blob) {
 async function recorder() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    chunks = []
-    mediarecorder = new MediaRecorder(stream)
-    mediarecorder.start()
-    mediarecorder.ondataavailable = (e: BlobEvent) => {
-      if (e.data.size > 0) chunks.push(e.data)
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsUrl = `${protocol}://${window.location.host}/upload`;
+    const ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      mediarecorder = new MediaRecorder(stream as MediaStream, { mimeType: "audio/webm" })
+      mediarecorder.start(10000)
+      mediarecorder.ondataavailable = async (e: BlobEvent) => {
+        if (e.data.size > 0 && ws?.readyState === WebSocket.OPEN) {
+          const arraybuffer = await e.data.arrayBuffer()
+          ws.send(arraybuffer)
+        }
+      }
+      mediarecorder.onstop = async () => {
+        isProcessing.value = true
+        reportMessage.value = ''
+        reportError.value = false
+        showGenerateButton.value = false
+        ws.send(JSON.stringify({ meetingid }))
+      }
+      ws.onerror = (err) => console.error("WS error", err)
+      ws.onmessage = (event) => {
+        isProcessing.value = false
+        if (typeof (event.data) == 'string') {
+          const data = JSON.parse(event.data)
+          if (data.type == 'error') {
+            reportError.value = true
+            reportMessage.value = data.message || 'Failed to generate report.'
+            return ws.close()
+          }
+          if (!!data.pdfName)
+            return fileName.value = data.pdfName
+        }
+        showGenerateButton.value = true
+        reportMessage.value = 'Meeting report is ready for download.'
+        const pdfblob = new Blob([event.data], { type: 'application/pdf' })
+        generateReport(pdfblob)
+        ws.close()
+
+      }
     }
-    mediarecorder.onstop = () => {
-      const audioblob = new Blob(chunks, { type: 'audio/webm' })
-      sendaudio(audioblob)
-    }
-  } catch (error) {
+  }
+  catch (error) {
     window.alert(`Microphone error: ${error.message}`)
     toggleMic()
-  }
-}
-
-async function sendaudio(audioblob: Blob) {
-  try {
-    isProcessing.value = true
-    reportMessage.value = ''
-    reportError.value = false
-    showGenerateButton.value = false
-
-    const formData = new FormData()
-    formData.append('recorder', audioblob)
-    formData.append('meetingid', meetingid)
-
-    const response = await fetch('/upload', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-CSRF-Token': csrfToken.value,
-      },
-      credentials: 'include',
-    })
-
-    const contentType = response.headers.get('Content-Type')
-
-    if (!response.ok) {
-      const error: Error = await response.json()
-      reportError.value = true
-      reportMessage.value = error.message || 'Failed to generate report.'
-      return
-    } else if (contentType && contentType.includes('application/pdf')) {
-      const name = response.headers.get('Content-Disposition')?.split('=')[1]
-      fileName.value = name as string
-      const pdfblob = await response.blob()
-      showGenerateButton.value = true
-      generateReport(pdfblob)
-      reportMessage.value = 'Meeting report is ready for download.'
-      reportError.value = false
-      return
-    }
-    const res: any = await response.json()
-    reportError.value = true
-    reportMessage.value = res.message || 'Unexpected response from server.'
-  } catch (error) {
-    reportError.value = true
-    reportMessage.value = 'Something went wrong. Please try again.'
-    console.error('clienterror', error)
-  } finally {
-    isProcessing.value = false
   }
 }
 

@@ -5,13 +5,12 @@ const DashboardController = () => import('#controllers/dashboard_controller')
 const NewMeetingsController = () => import('#controllers/new_meetings_controller')
 const AudioController = () => import('#controllers/audio_controller')
 const MeetinghandlersController = () => import('#controllers/meetinghandlers_controller')
-// router.on('/').renderInertia('home').as('dashboard')
 router
   .group(() => {
     router.get('/available-meetings', [DashboardController, 'dashboard']).as('dashboard')
     router.get('/', [MeetinghandlersController, 'handleMeeting']).as('meeting')
     router.post('/meeting', [NewMeetingsController, 'newMeeting'])
-    router.post('/upload', [AudioController, 'translateAudio'])
+    router.ws('/upload', [AudioController, 'translateAudio'])
   })
   .use(middleware.auth())
 

@@ -48,13 +48,13 @@ import type { SharedProps } from '@adonisjs/inertia/types'
 import { usePage } from '@inertiajs/vue3'
 
 const page = usePage<SharedProps>()
-const user = reactive({
+const user:Record<string,string>= reactive({
   email: '',
   password: '',
 })
 
 const csrfToken = ref(page.props.csrfToken)
-const formFields:Record<string,string> = ref([
+const formFields = ref<{label:string;src:string}[]>([
   {
     label: 'email',
     src: 'https://cdn-icons-png.flaticon.com/512/561/561127.png',

@@ -32,4 +32,7 @@ export class MeetingService {
   async checkMeeting(id: number, organization_id: number) {
     return await Meeting.query().where('id', id).andWhere('organization_id', organization_id)
   }
+  async getMeetDetails(meetingid:number):Promise<Meeting[]>{
+    return await Meeting.query().where('id', meetingid)
+  }
 }

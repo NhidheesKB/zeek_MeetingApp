@@ -1,7 +1,6 @@
 import env from '#start/env'
 import app from '@adonisjs/core/services/app'
 import { defineConfig, services } from '@adonisjs/drive'
-
 const driveConfig = defineConfig({
   default: env.get('DRIVE_DISK'),
 
@@ -24,6 +23,7 @@ const driveConfig = defineConfig({
       region: env.get('AWS_REGION'),
       bucket: env.get('S3_BUCKET'),
       visibility: 'public',
+      encryption:'AES256',
     }),
   },
 })

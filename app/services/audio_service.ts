@@ -1,8 +1,6 @@
 import Ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from '@ffmpeg-installer/ffmpeg'
-import { Readable } from 'stream'
 import axios from 'axios'
-import { promises as fs } from 'fs'
 import env from '#start/env'
 Ffmpeg.setFfmpegPath(ffmpegPath.path)
 export class AudioService {
@@ -13,13 +11,9 @@ export class AudioService {
     this.langUrl = env.get('LANG_URL') as string
   }
   async toWavFormat(path: string): Promise<Buffer> {
-    const audioBuffer = await fs.readFile(path)
-    const inputstream = new Readable()
-    inputstream.push(audioBuffer)
-    inputstream.push(null)
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = []
-      const outstream = Ffmpeg(inputstream)
+      const outstream = Ffmpeg(path)
         .inputFormat('webm')
         .audioCodec('pcm_s16le')
         .format('wav')
