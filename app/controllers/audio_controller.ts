@@ -49,6 +49,7 @@ export default class AudioController {
     const writeStream = fs.createWriteStream(audiofilePath, { flags: 'a',autoClose:true })
     ws.on('message', (message, isBinary) => {
       if (isBinary) {
+        console.log("message",message)
         writeStream.write(message)
       }
       else {
@@ -56,6 +57,8 @@ export default class AudioController {
         console.log("path", audiofilePath)
         setImmediate(async () => {
           try {
+            writeStream.end()
+            writeStream.on('finish',()=>console.log("Writestream Finish"))
             const pdfDetails = await audiotoSummary(audiofilePath,meetingid)
             ws.send(JSON.stringify({ pdfName: pdfDetails.pdfName }));
             ws.send(pdfDetails.pdfBuffer);
