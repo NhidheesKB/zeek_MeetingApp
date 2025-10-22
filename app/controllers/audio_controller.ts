@@ -8,7 +8,7 @@ import { AudioPipelineService } from '#services/audio_pipeline_service'
 @inject()
 export default class AudioController {
   constructor(private pipeline: AudioPipelineService) { }
-  public async translateAudio({ ws }: WebSocketContext) {
+  public async translateAudio({ ws,request }: WebSocketContext) {
     const filename = ws.id
     const folderPath = path.resolve('storage', 'tmp')
     fs.mkdirSync(folderPath, { recursive: true })
@@ -18,9 +18,9 @@ export default class AudioController {
       if (isBinary) {
         writeStream.write(message)
       } else {
-        const { meetingid } = JSON.parse(message.toString())
         setImmediate(async () => {
           try {
+            const { meetingid } = JSON.parse(message.toString())
             writeStream.on('finish', () => console.log('Audio write stream finished'))
             const { pdfBuffer, pdfName } = await this.pipeline.processAudioToPdf(audiofilePath, meetingid)
             ws.send(JSON.stringify({ pdfName }))

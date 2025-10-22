@@ -10,9 +10,9 @@ router
     router.get('/available-meetings', [DashboardController, 'dashboard']).as('dashboard')
     router.get('/', [MeetinghandlersController, 'handleMeeting']).as('meeting')
     router.post('/meeting', [NewMeetingsController, 'newMeeting'])
-    router.ws('/upload', [AudioController, 'translateAudio'])
   })
   .use(middleware.auth())
+router.ws('/upload', [AudioController, 'translateAudio'])
 
 router.on('/login').renderInertia('login').as('login')
 router.post('/login', [LoginController, 'login'])
