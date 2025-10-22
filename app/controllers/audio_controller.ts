@@ -8,7 +8,7 @@ import { AudioPipelineService } from '#services/audio_pipeline_service'
 @inject()
 export default class AudioController {
   constructor(private pipeline: AudioPipelineService) { }
-  public async translateAudio({ ws,request }: WebSocketContext) {
+  public async translateAudio({ ws }: WebSocketContext) {
     const filename = ws.id
     const folderPath = path.resolve('storage', 'tmp')
     fs.mkdirSync(folderPath, { recursive: true })
