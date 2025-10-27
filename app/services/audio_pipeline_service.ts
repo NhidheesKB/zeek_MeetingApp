@@ -22,7 +22,6 @@ export class AudioPipelineService {
   ) {}
   public async processAudioToPdf(audioFilePath: string, meetingId: number): Promise<{ pdfBuffer: Buffer; pdfName: string }> {
     const wavBuffer = await this.audio.toWavFormat(audioFilePath)
-    await unlink(audioFilePath).catch(() => null)
     const { url, filePath } = await this.disk.getUrl(wavBuffer)
     const langCode = await this.audio.detectLanguage(url)
     await this.handleErrorIfAny(filePath, langCode)
@@ -33,6 +32,7 @@ export class AudioPipelineService {
     const organization = await Organization.query().where('id', meetingDetails[0].organization_id)
     const pdfBuffer = await this.puppeteer.generateReport(meetingDetails, organization, summary) as Buffer<ArrayBufferLike>
     const pdfName = meetingDetails[0].title
+    await unlink(audioFilePath).catch(() => null)
     console.log('Translated text:', translatedText)
     console.log('Summary:', summary)
     return { pdfBuffer, pdfName }
@@ -40,7 +40,7 @@ export class AudioPipelineService {
 
   private async handleErrorIfAny(filePath: string, message: string | undefined): Promise<void> {
     if (this.errorMessages.includes(message as string)) {
-      await this.disk.delete(filePath).catch(() => null)
+      // await this.disk.delete(filePath).catch(() => null)
       throw new Error(message)
     }
   }

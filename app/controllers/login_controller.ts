@@ -11,7 +11,7 @@ export default class LoginController {
       const user = await User.verifyCredentials(email, password)
       if (user) {
         await auth.use('web').login(user)
-        console.log("user",user)
+        console.log("user",user.email)
         return response.redirect().toRoute('meeting')
       }
     } catch (error) {

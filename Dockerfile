@@ -19,7 +19,7 @@ COPY --from=build /build/build ./
 COPY --from=build /build/build/public /www/public
 COPY cred ./cred
 RUN mkdir -p ./storage/tmp
-RUN chmod -R 777 ./cred && chmod -R 777 ./storage
+RUN chmod -R 775 ./cred && chmod -R 775 ./storage
 COPY package*.json ./
 RUN npm ci --omit="dev"
 

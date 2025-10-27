@@ -26,13 +26,13 @@ export class MeetingService {
       title,
       date,
       time,
-      participants: participants.toString(),
+      participants: participants.toString()
     })
   }
   async checkMeeting(id: number, organization_id: number) {
     return await Meeting.query().where('id', id).andWhere('organization_id', organization_id)
   }
-  async getMeetDetails(meetingid:number):Promise<Meeting[]>{
+  async getMeetDetails(meetingid: number): Promise<Meeting[]> {
     return await Meeting.query().where('id', meetingid)
   }
 }

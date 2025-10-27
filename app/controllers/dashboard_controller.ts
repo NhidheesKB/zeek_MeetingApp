@@ -12,7 +12,7 @@ export default class DashboardController {
     try {
       const organization_id = auth.user.organization_id
       const meetings = await this.meeting.getMeeting(organization_id)
-      console.log('upcoo', meetings)
+      // console.log('upcoo', meetings)
       return inertia.render('allMeeting', {
         meetings,
       })

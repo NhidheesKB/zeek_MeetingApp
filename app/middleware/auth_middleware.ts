@@ -20,7 +20,7 @@ export default class AuthMiddleware {
     } = {}
   ) {
     await ctx.auth.authenticateUsing(options.guards, { loginRoute: this.redirectTo })
-
+    ctx.inertia.encryptHistory(true)
     return next()
   }
 }

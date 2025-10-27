@@ -38,8 +38,8 @@ export default class AudioController {
         })
       }
     })
-    ws.on('close', async () => {
-      console.log('WebSocket connection closed')
+    ws.on('close', async (code,reason) => {
+      console.log('WebSocket connection closed',code,reason.toString())
     })
 
     ws.on('error', (error) => {
